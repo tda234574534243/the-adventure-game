@@ -47,7 +47,7 @@ class Player(pygame.sprite.Sprite):
 		self.hit_index = 0
 		self.fall_index = 0
 
-		self.jump_height = 15
+		self.jump_height = 20
 		self.speed = 3
 		self.vel = self.jump_height
 		self.mass = 1
