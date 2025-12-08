@@ -10,34 +10,43 @@ from texts import Text, Message, BlinkingText, MessageBox
 
 pygame.init()
 
-WIDTH, HEIGHT = 640, 384
-win = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)
+# --- WINDOW UPSCALE CONFIG ---------------------------------------------------
+
+GAME_WIDTH, GAME_HEIGHT = 640, 384         # độ phân giải gốc của game
+WINDOW_WIDTH, WINDOW_HEIGHT = 1280, 768    # độ phân giải hiển thị lên màn hình
+
+# window thật (hiển thị)
+win = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+# surface game nội bộ (vẽ mọi thứ lên đây)
+game_surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
 TILE_SIZE = 16
+
+# scale factors để chuyển mouse coords
+SCALE_X = WINDOW_WIDTH / GAME_WIDTH
+SCALE_Y = WINDOW_HEIGHT / GAME_HEIGHT
 
 clock = pygame.time.Clock()
 FPS = 45
 
 # IMAGES **********************************************************************
 
-BG1 = pygame.transform.scale(pygame.image.load('assets/BG1.png'), (WIDTH, HEIGHT))
-BG2 = pygame.transform.scale(pygame.image.load('assets/BG2.png'), (WIDTH, HEIGHT))
-BG3 = pygame.transform.scale(pygame.image.load('assets/BG3.png'), (WIDTH, HEIGHT))
+BG1 = pygame.transform.scale(pygame.image.load('assets/BG1.png'), (GAME_WIDTH, GAME_HEIGHT))
+BG2 = pygame.transform.scale(pygame.image.load('assets/BG2.png'), (GAME_WIDTH, GAME_HEIGHT))
+BG3 = pygame.transform.scale(pygame.image.load('assets/BG3.png'), (GAME_WIDTH, GAME_HEIGHT))
 MOON = pygame.transform.scale(pygame.image.load('assets/moon.png'), (300, 220))
 
 # FONTS ***********************************************************************
 
 title_font = "Fonts/Aladin-Regular.ttf"
 instructions_font = 'Fonts/BubblegumSans-Regular.ttf'
-# about_font = 'Fonts/DalelandsUncialBold-82zA.ttf'
 
-ghostbusters = Message(WIDTH//2 + 50, HEIGHT//2 - 90, 90, "GhostBusters", title_font, (255, 255, 255), win)
-left_key = Message(WIDTH//2 + 10, HEIGHT//2 - 90, 20, "Press left arrow key to go left", instructions_font, (255, 255, 255), win)
-right_key = Message(WIDTH//2 + 10, HEIGHT//2 - 65, 20, "Press right arrow key to go right", instructions_font, (255, 255, 255), win)
-up_key = Message(WIDTH//2 + 10, HEIGHT//2 - 45, 20, "Press up arrow key to jump", instructions_font, (255, 255, 255), win)
-space_key = Message(WIDTH//2 + 10, HEIGHT//2 - 25, 20, "Press space key to shoot", instructions_font, (255, 255, 255), win)
-g_key = Message(WIDTH//2 + 10, HEIGHT//2 - 5, 20, "Press g key to throw grenade", instructions_font, (255, 255, 255), win)
-game_won_msg = Message(WIDTH//2 + 10, HEIGHT//2 - 5, 20, "You have won the game", instructions_font, (255, 255, 255), win)
-
+ghostbusters = Message(GAME_WIDTH//2 + 50, GAME_HEIGHT//2 - 90, 90, "GhostBusters", title_font, (255, 255, 255), game_surface)
+left_key = Message(GAME_WIDTH//2 + 10, GAME_HEIGHT//2 - 90, 20, "Press left arrow key to go left", instructions_font, (255, 255, 255), game_surface)
+right_key = Message(GAME_WIDTH//2 + 10, GAME_HEIGHT//2 - 65, 20, "Press right arrow key to go right", instructions_font, (255, 255, 255), game_surface)
+up_key = Message(GAME_WIDTH//2 + 10, GAME_HEIGHT//2 - 45, 20, "Press up arrow key to jump", instructions_font, (255, 255, 255), game_surface)
+space_key = Message(GAME_WIDTH//2 + 10, GAME_HEIGHT//2 - 25, 20, "Press space key to shoot", instructions_font, (255, 255, 255), game_surface)
+g_key = Message(GAME_WIDTH//2 + 10, GAME_HEIGHT//2 - 5, 20, "Press g key to throw grenade", instructions_font, (255, 255, 255), game_surface)
+game_won_msg = Message(GAME_WIDTH//2 + 10, GAME_HEIGHT//2 - 5, 20, "You have won the game", instructions_font, (255, 255, 255), game_surface)
 
 t = Text(instructions_font, 18)
 font_color = (12, 12, 12)
@@ -49,19 +58,18 @@ main_menu = t.render('Main Menu', font_color)
 
 about_font = pygame.font.SysFont('Times New Roman', 20)
 with open('Data/about.txt') as f:
-	info = f.read().replace('\n', ' ')
+    info = f.read().replace('\n', ' ')
 
 # BUTTONS *********************************************************************
 
 ButtonBG = pygame.image.load('Assets/ButtonBG.png')
 bwidth = ButtonBG.get_width()
 
-play_btn = Button(WIDTH//2 - bwidth//4, HEIGHT//2, ButtonBG, 0.5, play, 10)
-about_btn = Button(WIDTH//2 - bwidth//4, HEIGHT//2 + 35, ButtonBG, 0.5, about, 10)
-controls_btn = Button(WIDTH//2 - bwidth//4, HEIGHT//2 + 70, ButtonBG, 0.5, controls, 10)
-exit_btn = Button(WIDTH//2 - bwidth//4, HEIGHT//2 + 105, ButtonBG, 0.5, exit, 10)
-main_menu_btn = Button(WIDTH//2 - bwidth//4, HEIGHT//2 + 130, ButtonBG, 0.5, main_menu, 20)
-
+play_btn = Button(GAME_WIDTH//2 - bwidth//4, GAME_HEIGHT//2, ButtonBG, 0.5, play, 10)
+about_btn = Button(GAME_WIDTH//2 - bwidth//4, GAME_HEIGHT//2 + 35, ButtonBG, 0.5, about, 10)
+controls_btn = Button(GAME_WIDTH//2 - bwidth//4, GAME_HEIGHT//2 + 70, ButtonBG, 0.5, controls, 10)
+exit_btn = Button(GAME_WIDTH//2 - bwidth//4, GAME_HEIGHT//2 + 105, ButtonBG, 0.5, exit, 10)
+main_menu_btn = Button(GAME_WIDTH//2 - bwidth//4, GAME_HEIGHT//2 + 130, ButtonBG, 0.5, main_menu, 20)
 
 # GROUPS **********************************************************************
 
@@ -98,30 +106,32 @@ dx = 0
 # RESET ***********************************************************************
 
 def reset_level(level):
-	trail_group.empty()
-	bullet_group.empty()
-	grenade_group.empty()
-	explosion_group.empty()
-	enemy_group.empty()
-	water_group.empty()
-	diamond_group.empty()
-	potion_group.empty()
-	exit_group.empty()
+    trail_group.empty()
+    bullet_group.empty()
+    grenade_group.empty()
+    explosion_group.empty()
+    enemy_group.empty()
+    water_group.empty()
+    diamond_group.empty()
+    potion_group.empty()
+    exit_group.empty()
 
-	# LOAD LEVEL WORLD
+    world_data, level_length = load_level(level)
+    w = World(objects_group)
+    w.generate_world(world_data, game_surface)
 
-	world_data, level_length = load_level(level)
-	w = World(objects_group)
-	w.generate_world(world_data, win)
-
-	return world_data, level_length, w
+    return world_data, level_length, w
 
 def reset_player():
-	p = Player(250, 50)
-	moving_left = False
-	moving_right = False
+    p = Player(250, 50)
+    moving_left = False
+    moving_right = False
+    return p, moving_left, moving_right
 
-	return p, moving_left, moving_right
+# Khởi tạo p và trạng thái ban đầu tránh lỗi khi nhấn phím trước khi play
+p, moving_left, moving_right = reset_player()
+w = None
+world_data = None
 
 # MAIN GAME *******************************************************************
 
@@ -132,228 +142,242 @@ exit_page = False
 game_start = False
 game_won = True
 running = True
+
+def window_to_game_coords(window_pos):
+    """Chuyển toạ độ chuột từ cửa sổ -> toạ độ surface game"""
+    wx, wy = window_pos
+    gx = wx / SCALE_X
+    gy = wy / SCALE_Y
+    return (gx, gy)
+
 while running:
-	win.fill((0,0,0))
-	for x in range(5):
-		win.blit(BG1, ((x*WIDTH) - bg_scroll * 0.6, 0))
-		win.blit(BG2, ((x*WIDTH) - bg_scroll * 0.7, 0))
-		win.blit(BG3, ((x*WIDTH) - bg_scroll * 0.8, 0))
 
-	if not game_start:
-		win.blit(MOON, (-40, 150))
+    # clear game surface
+    game_surface.fill((0,0,0))
 
-	for event in pygame.event.get():
-		if event.type == pygame.QUIT:
-			running = False
+    for x in range(5):
+        game_surface.blit(BG1, ((x*GAME_WIDTH) - bg_scroll * 0.6, 0))
+        game_surface.blit(BG2, ((x*GAME_WIDTH) - bg_scroll * 0.7, 0))
+        game_surface.blit(BG3, ((x*GAME_WIDTH) - bg_scroll * 0.8, 0))
 
-		if event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_ESCAPE or \
-				event.key == pygame.K_q:
-				running = False
+    if not game_start:
+        game_surface.blit(MOON, (-40, 150))
 
-		if event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_LEFT:
-				moving_left = True
-			if event.key == pygame.K_RIGHT:
-				moving_right = True
-			if event.key == pygame.K_UP:
-				if not p.jump:
-					p.jump = True
-			if event.key == pygame.K_SPACE:
-				x, y = p.rect.center
-				direction = p.direction
-				bullet = Bullet(x, y, direction, (240, 240, 240), 1, win)
-				bullet_group.add(bullet)
+    # lấy trạng thái chuột (trên window thật), chuyển về tọa độ game
+    mouse_pos_window = pygame.mouse.get_pos()
+    mouse_pressed = pygame.mouse.get_pressed()
+    mouse_pos_game = window_to_game_coords(mouse_pos_window)
 
-				p.attack = True
-			if event.key == pygame.K_g:
-				if p.grenades:
-					p.grenades -= 1
-					grenade = Grenade(p.rect.centerx, p.rect.centery, p.direction, win)
-					grenade_group.add(grenade)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-		if event.type == pygame.KEYUP:
-			if event.key == pygame.K_LEFT:
-				moving_left = False
-			if event.key == pygame.K_RIGHT:
-				moving_right = False
+        if event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_ESCAPE, pygame.K_q):
+                running = False
 
-	if main_menu:
-		ghostbusters.update()
-		trail_group.update()
-		win.blit(p_image, p_rect)
-		p_rect.y += p_dy
-		p_ctr += p_dy
-		if p_ctr > 15 or p_ctr < -15:
-			p_dy *= -1
-		t = Trail(p_rect.center, (220, 220, 220), win)
-		trail_group.add(t)
+            if event.key == pygame.K_LEFT:
+                moving_left = True
+            if event.key == pygame.K_RIGHT:
+                moving_right = True
+            if event.key == pygame.K_UP:
+                if not p.jump:
+                    p.jump = True
+            if event.key == pygame.K_SPACE:
+                x, y = p.rect.center
+                direction = p.direction
+                bullet = Bullet(x, y, direction, (240, 240, 240), 1, game_surface)
+                bullet_group.add(bullet)
+                p.attack = True
+            if event.key == pygame.K_g:
+                if p.grenades:
+                    p.grenades -= 1
+                    grenade = Grenade(p.rect.centerx, p.rect.centery, p.direction, game_surface)
+                    grenade_group.add(grenade)
 
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                moving_left = False
+            if event.key == pygame.K_RIGHT:
+                moving_right = False
 
-		if play_btn.draw(win):
-			world_data, level_length, w = reset_level(level)
-			p, moving_left, moving_right = reset_player()
+    # ------------------------------------------------------------------------
+    # ---------------------------  MAIN MENU  --------------------------------
+    # ------------------------------------------------------------------------
 
-			game_start = True
-			main_menu = False
-			game_won = False
+    if main_menu:
+        ghostbusters.update()
+        trail_group.update()
+        game_surface.blit(p_image, p_rect)
+        p_rect.y += p_dy
+        p_ctr += p_dy
+        if p_ctr > 15 or p_ctr < -15:
+            p_dy *= -1
+        t = Trail(p_rect.center, (220, 220, 220), game_surface)
+        trail_group.add(t)
 
-		if about_btn.draw(win):
-			about_page = True
-			main_menu = False
+        if play_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            world_data, level_length, w = reset_level(level)
+            p, moving_left, moving_right = reset_player()
 
-		if controls_btn.draw(win):
-			controls_page = True
-			main_menu = False
+            game_start = True
+            main_menu = False
+            game_won = False
 
-		if exit_btn.draw(win):
-			running = False
+        if about_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            about_page = True
+            main_menu = False
 
-	elif about_page:
-		MessageBox(win, about_font, 'GhostBusters', info)
-		if main_menu_btn.draw(win):
-			about_page = False
-			main_menu = True
+        if controls_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            controls_page = True
+            main_menu = False
 
-	elif controls_page:
-		left_key.update()
-		right_key.update()
-		up_key.update()
-		space_key.update()
-		g_key.update()
+        if exit_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            running = False
 
-		if main_menu_btn.draw(win):
-			controls_page = False
-			main_menu = True
+    elif about_page:
+        MessageBox(game_surface, about_font, 'GhostBusters', info)
+        if main_menu_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            about_page = False
+            main_menu = True
 
-	elif exit_page:
-		pass
+    elif controls_page:
+        left_key.update()
+        right_key.update()
+        up_key.update()
+        space_key.update()
+        g_key.update()
 
-	elif game_won:
-		game_won_msg.update()
-		if main_menu_btn.draw(win):
-			controls_page = False
-			main_menu = True
-			level = 1
+        if main_menu_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            controls_page = False
+            main_menu = True
 
-			
-	elif game_start:
-		win.blit(MOON, (-40, -10))
-		w.draw_world(win, screen_scroll)
+    elif exit_page:
+        pass
 
-		# Updating Objects ********************************************************
+    elif game_won:
+        game_won_msg.update()
+        if main_menu_btn.draw(game_surface, mouse_pos_game, mouse_pressed):
+            controls_page = False
+            main_menu = True
+            level = 1
 
-		bullet_group.update(screen_scroll, w)
-		grenade_group.update(screen_scroll, p, enemy_group, explosion_group, w)
-		explosion_group.update(screen_scroll)
-		trail_group.update()
-		water_group.update(screen_scroll)
-		water_group.draw(win)
-		diamond_group.update(screen_scroll)
-		diamond_group.draw(win)
-		potion_group.update(screen_scroll)
-		potion_group.draw(win)
-		exit_group.update(screen_scroll)
-		exit_group.draw(win)
+    # ------------------------------------------------------------------------
+    # --------------------------  GAME START  --------------------------------
+    # ------------------------------------------------------------------------
 
-		enemy_group.update(screen_scroll, bullet_group, p)
-		enemy_group.draw(win)
+    elif game_start:
+        # ensure world loaded
+        if w is None:
+            world_data, level_length, w = reset_level(level)
 
-		if p.jump:
-			t = Trail(p.rect.center, (220, 220, 220), win)
-			trail_group.add(t)
+        game_surface.blit(MOON, (-40, -10))
+        w.draw_world(game_surface, screen_scroll)
 
-		screen_scroll = 0
-		p.update(moving_left, moving_right, w)
-		p.draw(win)
+        bullet_group.update(screen_scroll, w)
+        grenade_group.update(screen_scroll, p, enemy_group, explosion_group, w)
+        explosion_group.update(screen_scroll)
+        trail_group.update()
+        water_group.update(screen_scroll)
+        water_group.draw(game_surface)
+        diamond_group.update(screen_scroll)
+        diamond_group.draw(game_surface)
+        potion_group.update(screen_scroll)
+        potion_group.draw(game_surface)
+        exit_group.update(screen_scroll)
+        exit_group.draw(game_surface)
 
-		if (p.rect.right >= WIDTH - SCROLL_THRES and bg_scroll < (level_length*TILE_SIZE) - WIDTH) \
-			or (p.rect.left <= SCROLL_THRES and bg_scroll > abs(dx)):
-			dx = p.dx
-			p.rect.x -= dx
-			screen_scroll = -dx
-			bg_scroll -= screen_scroll
+        enemy_group.update(screen_scroll, bullet_group, p)
+        enemy_group.draw(game_surface)
 
+        if p.jump:
+            t = Trail(p.rect.center, (220, 220, 220), game_surface)
+            trail_group.add(t)
 
-		# Collision Detetction ****************************************************
+        screen_scroll = 0
+        p.update(moving_left, moving_right, w)
+        p.draw(game_surface)
 
-		if p.rect.bottom > HEIGHT:
-			p.health = 0
+        if (p.rect.right >= GAME_WIDTH - SCROLL_THRES and bg_scroll < (level_length*TILE_SIZE) - GAME_WIDTH) \
+            or (p.rect.left <= SCROLL_THRES and bg_scroll > abs(dx)):
+            dx = p.dx
+            p.rect.x -= dx
+            screen_scroll = -dx
+            bg_scroll -= screen_scroll
 
-		if pygame.sprite.spritecollide(p, water_group, False):
-			p.health = 0
-			level = 1
+        if p.rect.bottom > GAME_HEIGHT:
+            p.health = 0
 
-		if pygame.sprite.spritecollide(p, diamond_group, True):
-			pass
+        if pygame.sprite.spritecollide(p, water_group, False):
+            p.health = 0
+            level = 1
 
-		if pygame.sprite.spritecollide(p, exit_group, False):
-			level += 1
-			if level <= MAX_LEVEL:
-				health = p.health
+        if pygame.sprite.spritecollide(p, diamond_group, True):
+            pass
 
-				world_data, level_length, w = reset_level(level)
-				p, moving_left, moving_right = reset_player() 
-				p.health = health
+        if pygame.sprite.spritecollide(p, exit_group, False):
+            level += 1
+            if level <= MAX_LEVEL:
+                health = p.health
+                world_data, level_length, w = reset_level(level)
+                p, moving_left, moving_right = reset_player()
+                p.health = health
+                screen_scroll = 0
+                bg_scroll = 0
+            else:
+                game_won = True
 
-				screen_scroll = 0
-				bg_scroll = 0
-			else:
-				game_won = True
+        potion = pygame.sprite.spritecollide(p, potion_group, False)
+        if potion:
+            if p.health < 100:
+                potion[0].kill()
+                p.health += 15
+                p.health = min(p.health, 100)
 
+        for bullet in bullet_group:
+            enemy =  pygame.sprite.spritecollide(bullet, enemy_group, False)
+            if enemy and bullet.type == 1:
+                if not enemy[0].hit:
+                    enemy[0].hit = True
+                    enemy[0].health -= 50
+                bullet.kill()
+            if bullet.rect.colliderect(p):
+                if bullet.type == 2:
+                    if not p.hit:
+                        p.hit = True
+                        p.health -= 20
+                    bullet.kill()
 
-		potion = pygame.sprite.spritecollide(p, potion_group, False)
-		if potion:
-			if p.health < 100:
-				potion[0].kill()
-				p.health += 15
-				if p.health > 100:
-					p.health = 100
+        if p.alive:
+            color = (0, 255, 0)
+            if p.health <= 40:
+                color = (255, 0, 0)
+            pygame.draw.rect(game_surface, color, (6, 8, p.health, 20), border_radius=10)
+        pygame.draw.rect(game_surface, (255, 255, 255), (6, 8, 100, 20), 2, border_radius=10)
 
+        for i in range(p.grenades):
+            pygame.draw.circle(game_surface, (200, 200, 200), (20 + 15*i, 40), 5)
+            pygame.draw.circle(game_surface, (255, 50, 50), (20 + 15*i, 40), 4)
+            pygame.draw.circle(game_surface, (0, 0, 0), (20 + 15*i, 40), 1)
 
-		for bullet in bullet_group:
-			enemy =  pygame.sprite.spritecollide(bullet, enemy_group, False)
-			if enemy and bullet.type == 1:
-				if not enemy[0].hit:
-					enemy[0].hit = True
-					enemy[0].health -= 50
-				bullet.kill()
-			if bullet.rect.colliderect(p):
-				if bullet.type == 2:
-					if not p.hit:
-						p.hit = True
-						p.health -= 20
-						print(p.health)
-					bullet.kill()
+        if p.health <= 0:
+            world_data, level_length, w = reset_level(level)
+            p, moving_left, moving_right = reset_player()
+            screen_scroll = 0
+            bg_scroll = 0
+            main_menu = True
+            about_page = False
+            controls_page = False
+            game_start = False
 
-		# drawing variables *******************************************************
+    # --------------------------------------------------------------------
+    # SCALE TO WINDOW ----------------------------------------------------
+    # --------------------------------------------------------------------
 
-		if p.alive:
-			color = (0, 255, 0)
-			if p.health <= 40:
-				color = (255, 0, 0)
-			pygame.draw.rect(win, color, (6, 8, p.health, 20), border_radius=10)
-		pygame.draw.rect(win, (255, 255, 255), (6, 8, 100, 20), 2, border_radius=10)
+    scaled = pygame.transform.scale(game_surface, (WINDOW_WIDTH, WINDOW_HEIGHT))
+    win.blit(scaled, (0,0))
 
-		for i in range(p.grenades):
-			pygame.draw.circle(win, (200, 200, 200), (20 + 15*i, 40), 5)
-			pygame.draw.circle(win, (255, 50, 50), (20 + 15*i, 40), 4)
-			pygame.draw.circle(win, (0, 0, 0), (20 + 15*i, 40), 1)
-		
-		if p.health <= 0:
-			world_data, level_length, w = reset_level(level)
-			p, moving_left, moving_right = reset_player() 
-
-			screen_scroll = 0
-			bg_scroll = 0
-
-			main_menu = True
-			about_page = False
-			controls_page = False
-			game_start = False
-
-	pygame.draw.rect(win, (255, 255,255), (0, 0, WIDTH, HEIGHT), 4, border_radius=10)
-	clock.tick(FPS)
-	pygame.display.update()
+    clock.tick(FPS)
+    pygame.display.update()
 
 pygame.quit()

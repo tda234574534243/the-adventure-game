@@ -1,42 +1,42 @@
-import pygame 
+import pygame
 
-class Button():
-	def __init__(self,x, y, image, scale, text=None, xoff=None):
-		self.width = int(image.get_width() * scale)
-		self.height = int(image.get_height() * scale)
-		self.image = pygame.transform.scale(image, (self.width, self.height))
-		self.rect = self.image.get_rect()
-		self.rect.topleft = (x, y)
+class Button:
+    def __init__(self, x, y, image, scale, text=None, xoff=None):
+        self.width = int(image.get_width() * scale)
+        self.height = int(image.get_height() * scale)
+        self.image = pygame.transform.scale(image, (self.width, self.height))
+        self.rect = self.image.get_rect(topleft=(x, y))
 
-		self.text = None
-		if text:
-			self.text = text
-			if xoff:
-				self.xoff = xoff
-			else:
-				self.xoff = self.text.get_width() // 2
-			self.yoff = self.text.get_height() // 2
+        self.text = text
+        if text:
+            self.xoff = xoff if xoff else text.get_width() // 2
+            self.yoff = text.get_height() // 2
 
-		self.clicked = False
+        # trạng thái click
+        self.held_inside = False
+        self.released = False
 
-	def draw(self, surface):
-		action = False
+    def draw(self, surface, mouse_pos, mouse_pressed):
+        action = False
+        inside = self.rect.collidepoint(mouse_pos)
 
-		#get mouse position
-		pos = pygame.mouse.get_pos()
+        # Nếu chuột đang đè và hover
+        if inside and mouse_pressed[0]:
+            self.held_inside = True
 
-		#check mouseover and clicked conditions
-		if self.rect.collidepoint(pos):
-			if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
-				action = True
-				self.clicked = True
+        # Khi thả chuột
+        if not mouse_pressed[0]:
+            if self.held_inside and inside:  
+                action = True  # nhả trong nút → click hợp lệ
+            self.held_inside = False
 
-		if pygame.mouse.get_pressed()[0] == 0:
-			self.clicked = False
+        surface.blit(self.image, self.rect)
 
-		#draw button
-		surface.blit(self.image, (self.rect.x, self.rect.y))
-		if self.text:
-			self.image.blit(self.text, (self.width//2 - self.xoff, self.height//2 - self.yoff))
+        if self.text:
+            surface.blit(
+                self.text,
+                (self.rect.x + self.width // 2 - self.xoff,
+                 self.rect.y + self.height // 2 - self.yoff)
+            )
 
-		return action
+        return action
