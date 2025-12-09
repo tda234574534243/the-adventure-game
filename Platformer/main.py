@@ -95,7 +95,7 @@ p_ctr = 1
 ROWS = 24
 COLS = 40
 SCROLL_THRES = 200
-MAX_LEVEL = 3
+MAX_LEVEL = 4
 
 level = 1
 level_length = 0
